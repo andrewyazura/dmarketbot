@@ -1,22 +1,24 @@
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-
-timeout = 20
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from tinydb import Query, TinyDB
 
 
 class ItemScraper:
-    def __init__(self, addr):
+    def __init__(self, addr, timeout):
         self.addr = addr
 
         options = Options()
-        # options.headless = True
+        options.headless = True
 
         self.driver = webdriver.Firefox(options=options)
         self.driver.implicitly_wait(timeout)
         self.wait = WebDriverWait(self.driver, timeout)
+
+        self.db = TinyDB('data/db.json')
+        self.items_table = self.db.table('all_items')
 
     def download_page(self):
         self.driver.get(self.addr)
@@ -34,7 +36,7 @@ class ItemScraper:
             self.__open_card(card)
 
             info = self.__get_item_information()
-            print(info)
+            self.items_table.insert(info)
 
             self.__close_overlapping_menu()
 
@@ -75,10 +77,13 @@ class ItemScraper:
         title = block.find_element_by_tag_name('h3').text.strip()
         exterior = self.__get_weapon_exterior(title)
 
-        prices = [float(span.text.strip())
+        prices = [span.text.strip()
                   for span in
                   block.find_elements_by_class_name(
-            'c-assetPreviewParam__number')]
+            'c-assetPreviewParam__number')]  # prices are str there
+
+        prices = [float(''.join(price.split()))
+                  for price in prices]  # converting prices to floats
 
         profit = round(abs(prices[1] - prices[0]), 2)
         discount = block.find_element_by_tag_name(
@@ -134,9 +139,13 @@ class ItemScraper:
         except:
             print('couldn\'t close sidebar')
 
+    def quit(self):
+        self.driver.quit()
+        self.db.close()
+
 
 scraper = ItemScraper(
-    'https://dmarket.com/ingame-items/item-list/csgo-skins?price-to=200')
+    'https://dmarket.com/ingame-items/item-list/csgo-skins', 20)
 print('loading page...')
 scraper.download_page()
 print('cleaning up...')
@@ -145,3 +154,5 @@ print('searching items...')
 scraper.get_items()
 print('saving items...')
 scraper.save_item_information()
+print('ending job...')
+scraper.quit()
