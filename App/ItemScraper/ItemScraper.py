@@ -1,9 +1,13 @@
+import logging
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from tinydb import Query, TinyDB
+from tinydb import TinyDB
+
+logger = logging.getLogger(__name__)
 
 
 class ItemScraper:
@@ -20,37 +24,53 @@ class ItemScraper:
         self.db = TinyDB('data/db.json')
         self.items_table = self.db.table('all_items')
 
+        logger.debug('__init__() finished')
+
     def download_page(self):
+        logger.debug('download_page() started')
         self.driver.get(self.addr)
+        logger.info('page downloaded')
 
     def clean_page(self):
+        logger.debug('clean_page() started')
+
         self.__dismiss_notifications()
         self.__close_overlapping_menu()
         self.__dismiss_sidebar()
 
     def get_items(self):
+        logger.debug('get_items() started')
+
         self.cards = self.driver.find_elements_by_tag_name('asset-card')
 
     def save_item_information(self):
+        logger.debug('save_item_information() started')
+
         for card in self.cards:
             self.__open_card(card)
 
             info = self.__get_item_information()
             self.items_table.insert(info)
+            logger.info('item saved')
 
             self.__close_overlapping_menu()
 
     def __open_card(self, card):
+        logger.debug('__open_card() started')
+
         try:
             x = card.find_element_by_css_selector(
                 'button.c-asset__action.c-asset__action--info')
             x.click()  # this way it's more reliable for some reason
 
         except:
+            logger.warning('couldn\'t open card')
             self.__dismiss_sidebar()
             self.__open_card(card)
 
     def __get_item_information(self):
+        logger.debug('__get_item_information() started')
+
         overlay = self.driver.find_element_by_class_name(
             'cdk-global-overlay-wrapper')
 
@@ -63,6 +83,8 @@ class ItemScraper:
         return {**data, 'url': url}
 
     def __get_url(self, block):
+        logger.debug('__get_url() started')
+
         button = block.find_element_by_css_selector(
             'button.c-shareLink__btn.mat-flat-button')
         button.click()
@@ -74,6 +96,8 @@ class ItemScraper:
         return url
 
     def __get_data(self, block):
+        logger.debug('__get_data() started')
+
         title = block.find_element_by_tag_name('h3').text.strip()
         exterior = self.__get_weapon_exterior(title)
 
@@ -105,22 +129,27 @@ class ItemScraper:
         return data
 
     def __get_weapon_exterior(self, title):
-        exterior = title.split('(')[-1]
+        logger.debug('__get_weapon_exterior() started')
 
+        exterior = title.split('(')[-1]
         return exterior[:-1]
 
     def __close_overlapping_menu(self):
+        logger.debug('__close_overlapping_menu() started')
+
         try:
             overlay = self.driver.find_element_by_class_name(
                 'cdk-global-overlay-wrapper')
             overlay.find_element_by_class_name('c-dialogHeader__close').click()
 
         except:
-            print('couldn\'t close overlay')
+            logger.warning('couldn\'t close overlay')
             self.__dismiss_notifications()
             self.__close_overlapping_menu()
 
     def __dismiss_notifications(self):
+        logger.debug('__dismiss_notification() started')
+
         try:
             self.wait.until(EC.visibility_of_element_located(
                 (By.ID, 'onesignal-popover-cancel-button')))
@@ -128,31 +157,34 @@ class ItemScraper:
                 'onesignal-popover-cancel-button').click()
 
         except:
-            print('notification didn\'t appear')
+            logger.warning('notification didn\'t appear')
 
     def __dismiss_sidebar(self):
+        logger.debug('__dismiss_sidebar() started')
+
         try:
             sidebar = self.driver.find_element_by_class_name('с-seoArea')
             sidebar.find_element_by_class_name(
                 'с-seoArea__headerClose').click()
 
         except:
-            print('couldn\'t close sidebar')
+            logger.warning('couldn\'t close sidebar')
 
     def quit(self):
+        logger.debug('quit() started')
+
         self.driver.quit()
         self.db.close()
 
 
-scraper = ItemScraper(
-    'https://dmarket.com/ingame-items/item-list/csgo-skins', 20)
-print('loading page...')
-scraper.download_page()
-print('cleaning up...')
-scraper.clean_page()
-print('searching items...')
-scraper.get_items()
-print('saving items...')
-scraper.save_item_information()
-print('ending job...')
-scraper.quit()
+if __name__ == '__main__':
+    logging.basicConfig(filename='itemscraper.log',
+                        filemode='w', level=logging.INFO)
+
+    scraper = ItemScraper(
+        'https://dmarket.com/ingame-items/item-list/csgo-skins', 20)
+    scraper.download_page()
+    scraper.clean_page()
+    scraper.get_items()
+    scraper.save_item_information()
+    scraper.quit()
