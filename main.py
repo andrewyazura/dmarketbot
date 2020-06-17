@@ -34,7 +34,7 @@ def main():
     notifier.send_notifications()
     notifier.quit()
 
-    # clear_table('best_items')
+    clear_table('best_items')
 
 
 if __name__ == '__main__':

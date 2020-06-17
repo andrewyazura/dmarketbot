@@ -19,7 +19,7 @@ class ItemScraper:
         self.addr = addr
 
         options = Options()
-        # options.headless = True
+        options.headless = True
 
         self.driver = webdriver.Firefox(options=options)
         self.driver.implicitly_wait(timeout)
