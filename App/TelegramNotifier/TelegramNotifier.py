@@ -51,9 +51,11 @@ class TelegramNotifier:
 
             logger.debug('message to %s sent', group)
 
-            self.bot.send_message(
+            msg = self.bot.send_message(
                 group, self.__generate_other_items(other_items),
                 parse_mode='markdown', disable_web_page_preview=True)
+
+            self.bot.pin_chat_message(group, msg.message_id)
 
         logger.info('%i items are sent to %i groups',
                     len(items), len(self.groups))
