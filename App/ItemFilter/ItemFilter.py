@@ -1,6 +1,5 @@
 import logging
 
-import yaml
 from tinydb import Query, TinyDB
 
 logger = logging.getLogger(__name__)
@@ -39,6 +38,7 @@ if __name__ == '__main__':
     logging.basicConfig(filename='itemfilter.log',
                         filemode='w', level=logging.INFO)
 
+    import yaml
     with open('config.yaml', 'r') as conf:
         config = yaml.safe_load(conf)
 

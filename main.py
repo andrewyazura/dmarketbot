@@ -30,7 +30,10 @@ def main():
 
     clear_table('all_items')
 
-    # send to telegram
+    notifier = App.TelegramNotifier(config)
+    notifier.send_notifications()
+    notifier.quit()
+
     # clear_table('best_items')
 
 

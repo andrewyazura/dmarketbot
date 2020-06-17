@@ -1,6 +1,5 @@
 import logging
 
-import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +29,7 @@ if __name__ == '__main__':
     logging.basicConfig(filename='urlgenerator.log',
                         filemode='w', level=logging.INFO)
 
+    import yaml
     with open('config.yaml', 'r') as conf:
         config = yaml.safe_load(conf)
 
