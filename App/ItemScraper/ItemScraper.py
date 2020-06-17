@@ -19,7 +19,7 @@ class ItemScraper:
         self.addr = addr
 
         options = Options()
-        options.headless = True
+        # options.headless = True
 
         self.driver = webdriver.Firefox(options=options)
         self.driver.implicitly_wait(timeout)
@@ -46,6 +46,7 @@ class ItemScraper:
         logger.debug('get_items() started')
 
         self.cards = self.driver.find_elements_by_tag_name('asset-card')
+        logger.info('%i cards with items found', len(self.cards))
 
     def save_item_information(self):
         logger.debug('save_item_information() started')
@@ -69,6 +70,7 @@ class ItemScraper:
 
         except:
             logger.warning('couldn\'t open card')
+            self.__close_overlapping_menu()
             self.__dismiss_sidebar()
             self.__open_card(card)
 

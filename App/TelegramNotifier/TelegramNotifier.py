@@ -34,8 +34,8 @@ class TelegramNotifier:
         logger.debug('send_notifications() started')
 
         items = self.__sort_items()
-        best_items = items[:6]
-        other_items = items[6:]
+        best_items = items[:5]
+        other_items = items[5:]
 
         for group in self.groups:
             for item in best_items:
