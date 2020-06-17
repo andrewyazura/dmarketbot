@@ -1,6 +1,11 @@
+import sched
+import time
+
 import yaml
 
 import App
+
+s = sched.scheduler(time.time, time.sleep)
 
 
 def clear_table(table_name):
@@ -35,10 +40,13 @@ def main():
     notifier.quit()
 
     clear_table('best_items')
+    s.enter(180, 1, main)
 
 
 if __name__ == '__main__':
     import logging
     logging.basicConfig(filename='dmarketbot.log',
                         filemode='w', level=logging.DEBUG)
-    main()
+
+    s.enter(1, 1, main)
+    s.run()

@@ -68,8 +68,10 @@ class ItemScraper:
                 'button.c-asset__action.c-asset__action--info')
             x.click()  # this way it's more reliable for some reason
 
-        except:
+        except Exception as e:
             logger.warning('couldn\'t open card')
+            logger.debug(e)
+
             self.__close_overlapping_menu()
             self.__dismiss_sidebar()
             self.__open_card(card)
@@ -77,16 +79,21 @@ class ItemScraper:
     def __get_item_information(self):
         logger.debug('__get_item_information() started')
 
-        overlay = self.driver.find_element_by_class_name(
-            'cdk-global-overlay-wrapper')
+        try:
+            overlay = self.driver.find_element_by_class_name(
+                'cdk-global-overlay-wrapper')
 
-        item_info_blocks = overlay.find_elements_by_class_name(
-            'c-assetPreview__inner')
+            item_info_blocks = overlay.find_elements_by_class_name(
+                'c-assetPreview__inner')
 
-        url = self.__get_url(item_info_blocks[0])
-        data = self.__get_data(item_info_blocks[1])
+            url = self.__get_url(item_info_blocks[0])
+            data = self.__get_data(item_info_blocks[1])
 
-        return {**data, 'url': url}
+            return {**data, 'url': url}
+
+        except Exception as e:
+            logger.warning('couldn\'t find window')
+            logger.debug(e)
 
     def __get_url(self, block):
         logger.debug('__get_url() started')
@@ -140,7 +147,7 @@ class ItemScraper:
         exterior = title.split('(')[-1]
         return exterior[:-1]
 
-    def __close_overlapping_menu(self):
+    def __close_overlapping_menu(self, close_self=True):
         logger.debug('__close_overlapping_menu() started')
 
         try:
@@ -148,10 +155,12 @@ class ItemScraper:
                 'cdk-global-overlay-wrapper')
             overlay.find_element_by_class_name('c-dialogHeader__close').click()
 
-        except:
+        except Exception as e:
             logger.warning('couldn\'t close overlay')
+            logger.debug(e)
             self.__dismiss_notifications()
-            self.__close_overlapping_menu()
+            if close_self:
+                self.__close_overlapping_menu(close_self=False)
 
     def __dismiss_notifications(self):
         logger.debug('__dismiss_notification() started')
@@ -162,8 +171,9 @@ class ItemScraper:
             self.driver.find_element_by_id(
                 'onesignal-popover-cancel-button').click()
 
-        except:
+        except Exception as e:
             logger.warning('notification didn\'t appear')
+            logger.debug(e)
 
     def __dismiss_sidebar(self):
         logger.debug('__dismiss_sidebar() started')
@@ -173,8 +183,9 @@ class ItemScraper:
             sidebar.find_element_by_class_name(
                 'с-seoArea__headerClose').click()
 
-        except:
+        except Exception as e:
             logger.warning('couldn\'t close sidebar')
+            logger.debug(e)
 
     def quit(self):
         logger.debug('quit() started')
