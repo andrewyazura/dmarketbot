@@ -94,6 +94,7 @@ class ItemScraper:
         except Exception as e:
             logger.warning('couldn\'t find window')
             logger.debug(e)
+            return {}
 
     def __get_url(self, block):
         logger.debug('__get_url() started')
