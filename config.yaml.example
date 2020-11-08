@@ -1,0 +1,17 @@
+base_url: 'https://dmarket.com/ingame-items/item-list/csgo-skins'
+selenium_timeout: 20
+
+min_profit: 200
+min_price: 1000
+max_price: 2000
+exteriors:
+  - Battle-Scarred
+  - Well-Worn
+  - Field-Tested
+  - Minimal Wear
+  - Factory New
+
+telegram_token: ''
+sort_type: 'profit_highest' 
+groups:
+  - group_id
