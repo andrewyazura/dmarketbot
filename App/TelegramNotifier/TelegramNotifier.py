@@ -50,9 +50,13 @@ class TelegramNotifier:
                 sleep(0.5)
 
             logger.debug('message to %s sent', group)
+            text = self.__generate_other_items(other_items)
+
+            if not text:
+                continue
 
             msg = self.bot.send_message(
-                group, self.__generate_other_items(other_items),
+                group, text,
                 parse_mode='markdown', disable_web_page_preview=True)
 
             self.bot.pin_chat_message(group, msg.message_id)

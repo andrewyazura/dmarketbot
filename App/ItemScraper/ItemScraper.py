@@ -8,7 +8,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from tinydb import TinyDB
 
-
 logger = logging.getLogger(__name__)
 LOGGER.setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -20,6 +19,7 @@ class ItemScraper:
 
         options = Options()
         options.headless = True
+        options.set_preference("dom.webnotifications.enabled", False)
 
         self.driver = webdriver.Firefox(options=options)
         self.driver.implicitly_wait(timeout)
@@ -38,7 +38,6 @@ class ItemScraper:
     def clean_page(self):
         logger.debug('clean_page() started')
 
-        self.__dismiss_notifications()
         self.__close_overlapping_menu()
         self.__dismiss_sidebar()
 
@@ -52,7 +51,9 @@ class ItemScraper:
         logger.debug('save_item_information() started')
 
         for card in self.cards:
-            self.__open_card(card)
+            is_open = self.__open_card(card)
+            if not is_open:
+                break
 
             info = self.__get_item_information()
             self.items_table.insert(info)
@@ -66,15 +67,15 @@ class ItemScraper:
         try:
             x = card.find_element_by_css_selector(
                 'button.c-asset__action.c-asset__action--info')
+
             x.click()  # this way it's more reliable for some reason
+            return True
 
         except Exception as e:
             logger.warning('couldn\'t open card')
             logger.debug(e)
 
-            self.__close_overlapping_menu()
-            self.__dismiss_sidebar()
-            self.__open_card(card)
+            return False
 
     def __get_item_information(self):
         logger.debug('__get_item_information() started')
@@ -159,9 +160,6 @@ class ItemScraper:
         except Exception as e:
             logger.warning('couldn\'t close overlay')
             logger.debug(e)
-            self.__dismiss_notifications()
-            if close_self:
-                self.__close_overlapping_menu(close_self=False)
 
     def __dismiss_notifications(self):
         logger.debug('__dismiss_notification() started')
